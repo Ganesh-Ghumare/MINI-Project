@@ -1,0 +1,232 @@
+::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #090d16;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #27354a;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #3b4e6b;
+    }
+
+    /* Hide scrollbars for clean tab strips */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    .stack-anim-in {
+      animation: stackSlide 0.25s ease-out forwards;
+    }
+
+    .structure-stage {
+      overflow: auto;
+      padding: 0.75rem;
+    }
+    .structure-view {
+      width: min(100%, 38rem);
+      min-height: 17rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 1rem;
+      padding: 1.25rem;
+      border: 1px solid rgba(51, 65, 85, 0.8);
+      border-radius: 1rem;
+      background:
+        radial-gradient(ellipse at top, rgba(99, 102, 241, 0.1), transparent 60%),
+        rgba(2, 6, 23, 0.7);
+    }
+    .structure-view-title {
+      color: #cbd5e1;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-align: center;
+    }
+    .structure-capacity {
+      width: min(100%, 22rem);
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      color: #94a3b8;
+      font: 500 0.7rem "Fira Code", monospace;
+    }
+    .structure-capacity-track {
+      height: 0.3rem;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #1e293b;
+    }
+    .structure-capacity-fill {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #6366f1, #22d3ee);
+      transition: width 0.3s ease;
+    }
+    .structure-empty {
+      flex: 1;
+      min-height: 10rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.55rem;
+      color: #94a3b8;
+      text-align: center;
+    }
+    .structure-empty-icon {
+      width: 2.8rem;
+      height: 2.8rem;
+      display: grid;
+      place-items: center;
+      margin-bottom: 0.2rem;
+      border: 1px solid rgba(129, 140, 248, 0.3);
+      border-radius: 0.9rem;
+      background: rgba(99, 102, 241, 0.12);
+      color: #a5b4fc;
+      font-size: 1.35rem;
+    }
+    .structure-empty strong {
+      color: #e2e8f0;
+      font-size: 0.9rem;
+    }
+    .structure-empty span:last-child {
+      max-width: 18rem;
+      font-size: 0.75rem;
+      line-height: 1.4;
+    }
+    .stack-column {
+      width: min(100%, 15rem);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+      padding-top: 0.25rem;
+    }
+    .stack-top-marker {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      margin-bottom: 0.1rem;
+      color: #fbbf24;
+      font: 700 0.65rem "Fira Code", monospace;
+      letter-spacing: 0.12em;
+    }
+    .stack-marker-arrow {
+      font-size: 1rem;
+      line-height: 0.8;
+    }
+    .structure-item {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(99, 102, 241, 0.5);
+      background: linear-gradient(135deg, rgba(49, 46, 129, 0.65), rgba(30, 41, 59, 0.95));
+      color: #e0e7ff;
+      font: 700 0.95rem "Fira Code", monospace;
+      box-shadow: 0 8px 20px rgba(2, 6, 23, 0.22);
+      animation: structureItemIn 0.22s ease-out both;
+      transition: border-color 0.2s, background 0.2s, transform 0.2s, box-shadow 0.2s;
+    }
+    .structure-item.is-endpoint {
+      border-color: rgba(34, 211, 238, 0.68);
+      box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.1), 0 8px 24px rgba(8, 145, 178, 0.1);
+    }
+    .structure-item.is-active {
+      border-color: #fbbf24;
+      background: linear-gradient(135deg, rgba(180, 83, 9, 0.55), rgba(120, 53, 15, 0.5));
+      color: #fef3c7;
+      transform: scale(1.04);
+    }
+    .stack-item {
+      width: 100%;
+      min-height: 2.8rem;
+      border-radius: 0.65rem;
+    }
+    .structure-item-index {
+      position: absolute;
+      left: 0.65rem;
+      color: #94a3b8;
+      font-size: 0.62rem;
+      font-weight: 500;
+    }
+    .stack-base {
+      width: 115%;
+      height: 0.4rem;
+      border: 1px solid #475569;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #334155, #64748b, #334155);
+      box-shadow: 0 5px 12px rgba(2, 6, 23, 0.45);
+    }
+    .queue-track {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 3.5rem minmax(0, 1fr) 3.5rem;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 1.4rem 0 0.5rem;
+    }
+    .queue-endpoint {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.25rem;
+      color: #67e8f9;
+      font: 700 0.57rem "Fira Code", monospace;
+      letter-spacing: 0.07em;
+    }
+    .queue-endpoint-arrow {
+      font-size: 1rem;
+      line-height: 0.8;
+    }
+    .queue-items {
+      min-height: 4rem;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      overflow-x: auto;
+      padding: 0.65rem 0.2rem;
+      border-top: 1px solid rgba(51, 65, 85, 0.8);
+      border-bottom: 1px solid rgba(51, 65, 85, 0.8);
+    }
+    .queue-item {
+      flex: 0 0 3.6rem;
+      min-height: 3rem;
+      border-radius: 0.65rem;
+    }
+    @keyframes structureItemIn {
+      from { opacity: 0; transform: translateY(-8px) scale(0.94); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @keyframes stackSlide {
+      from { opacity: 0; transform: translateY(-16px) scale(0.9); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @media (max-width: 640px) {
+      .structure-view {
+        min-height: 15rem;
+        padding: 1rem 0.75rem;
+      }
+      .queue-track {
+        grid-template-columns: 2.8rem minmax(0, 1fr) 2.8rem;
+        gap: 0.35rem;
+      }
+      .queue-item {
+        flex-basis: 3.1rem;
+      }
+    }

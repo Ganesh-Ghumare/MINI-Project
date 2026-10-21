@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AlgoCraft - Interactive DSA Visualizer</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <script src="./tailwind.config.js"></script>
+
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
+
+  <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
+      <div class="flex items-center space-x-3 shrink-0">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-cyan-500 flex items-center justify-center shadow-lg shadow-indigo-500/25">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        </div>
+        <div>
+          <h1 class="font-extrabold text-base sm:text-lg tracking-tight bg-gradient-to-r from-indigo-400 via-cyan-400 to-emerald-400 bg-clip-text text-transparent flex items-center gap-1.5">
+            AlgoCraft <span class="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 text-indigo-400 font-bold">Visualizer</span>
+          </h1>
+          <p class="text-xs text-slate-400 hidden sm:block">Interactive Algorithm & Data Structure Playground</p>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="flex items-center space-x-1.5 bg-slate-800/80 p-1 rounded-xl border border-slate-700/60 overflow-x-auto max-w-[50%] sm:max-w-none">
+        <button onclick="switchCategory('sorting')" id="tab-sorting" class="nav-tab px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all bg-indigo-600 text-white shadow-sm flex items-center gap-1.5 whitespace-nowrap">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"/></svg>
+          Sorting
+        </button>
+        <button onclick="switchCategory('searching')" id="tab-searching" class="nav-tab px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all text-slate-400 hover:text-slate-200 flex items-center gap-1.5 whitespace-nowrap">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          Searching
+        </button>
+        <button onclick="switchCategory('datastructures')" id="tab-datastructures" class="nav-tab px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all text-slate-400 hover:text-slate-200 flex items-center gap-1.5 whitespace-nowrap">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+          Stack &amp; Queue
+        </button>
+        <button onclick="switchCategory('complexity')" id="tab-complexity" class="nav-tab px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all text-slate-400 hover:text-slate-200 flex items-center gap-1.5 whitespace-nowrap">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+          Complexity
+        </button>
+      </nav>
+
+      <!-- Audio Mute / Unmute -->
+      <button id="audio-toggle" onclick="toggleAudio()" title="Toggle Sound" class="p-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white transition shadow-sm shrink-0">
+        <span id="audio-icon-wrap" class="flex items-center">
+          <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
+        </span>
+      </button>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col gap-5">
+
+    <!-- Top Command Toolbar with structured responsive layout -->
+    <section class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col gap-4">
+      
+      <!-- Top Row: Algorithm Selection, Custom Data Input & Target -->
+      <div class="flex flex-wrap items-end gap-4 w-full">
+        
+        <!-- Algorithm Select -->
+        <div class="w-full sm:w-64 shrink-0">
+          <label id="algo-label" class="text-xs font-semibold text-slate-400 block mb-1.5">Algorithm</label>
+          <div class="relative">
+            <select id="algo-select" onchange="onAlgoChange()" class="w-full appearance-none bg-slate-800/90 border border-slate-700 hover:border-slate-600 text-white rounded-xl px-3.5 py-2.5 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer transition">
+              <!-- Dynamically populated -->
+            </select>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Custom Data Input with connected button -->
+        <div id="custom-data-control" class="flex-1 min-w-[260px]">
+          <label class="text-xs font-semibold text-slate-400 block mb-1.5 flex items-center justify-between">
+            <span>Custom Data</span>
+            <span class="text-[11px] text-slate-500 font-normal">Comma-separated (e.g. 5,4,2,3)</span>
+          </label>
+          <div class="flex items-center rounded-xl bg-slate-800/90 border border-slate-700 focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-500/20 transition overflow-hidden">
+            <input id="custom-array-input" type="text" placeholder="e.g. 42, 17, 88, 23, 65, 9" class="w-full bg-transparent text-white px-3.5 py-2.5 text-xs font-mono placeholder:text-slate-500 focus:outline-none" onkeydown="if(event.key==='Enter') applyCustomData()">
+            <button onclick="applyCustomData()" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shrink-0 transition flex items-center gap-1.5 border-l border-indigo-500/40">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              <span>Apply</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Stack and queue operations -->
+        <div id="structure-control" class="hidden flex-1 min-w-[260px] items-end gap-2">
+          <div id="structure-value-control" class="min-w-[140px] flex-1">
+            <label id="structure-value-label" for="structure-value-input" class="text-xs font-semibold text-slate-400 block mb-1.5">Value to push</label>
+            <input id="structure-value-input" type="number" min="-9999" max="9999" step="1" placeholder="Type a number..." onkeydown="if(event.key==='Enter') applyStructureOperation()" class="w-full bg-slate-800/90 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs font-mono font-bold text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+          <div class="flex items-center gap-2">
+            <button id="btn-structure-add" onclick="applyStructureOperation('push')" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-700 disabled:text-slate-500 disabled:cursor-not-allowed text-white text-xs font-semibold rounded-xl transition whitespace-nowrap">Push</button>
+            <button id="btn-structure-remove" onclick="applyStructureOperation('pop')" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 disabled:bg-slate-900 disabled:text-slate-600 disabled:cursor-not-allowed text-slate-200 text-xs font-semibold rounded-xl border border-slate-700 transition whitespace-nowrap">Pop</button>
+          </div>
+        </div>
+
+        <!-- Search Target Control (shown dynamically in searching mode) -->
+        <div id="search-target-control" class="w-full sm:w-56 shrink-0 hidden">
+          <label class="text-xs font-semibold text-slate-400 block mb-1.5">Target Value</label>
+          <div class="flex items-center gap-2">
+            <input id="search-target-input" type="number" value="45" class="w-full bg-slate-800/90 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono font-bold text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <button onclick="pickRandomTarget()" class="p-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl border border-slate-700 text-xs shrink-0 transition" title="Pick Random Target From Array">
+              <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Divider separating inputs from execution controls -->
+      <div id="controls-divider" class="h-px bg-slate-800/80 w-full"></div>
+
+      <!-- Bottom Row: Sliders (Left) and Playback Action Buttons (Right) -->
+      <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
+        
+        <!-- Sliders Container: Size & Speed Cards -->
+        <div id="sliders-container" class="flex flex-wrap sm:flex-nowrap items-center gap-3 flex-1 max-w-xl">
+          <div id="array-size-control" class="flex-1 min-w-[150px] bg-slate-950/70 border border-slate-800/80 rounded-xl px-3.5 py-2">
+            <div class="flex justify-between text-xs font-semibold text-slate-400 mb-1">
+              <span>Array Size</span>
+              <span id="size-label" class="text-indigo-400 font-mono font-bold">25</span>
+            </div>
+            <input id="size-slider" type="range" min="4" max="50" value="25" oninput="onSizeChange(this.value)" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+          </div>
+
+          <div id="speed-control" class="flex-1 min-w-[150px] bg-slate-950/70 border border-slate-800/80 rounded-xl px-3.5 py-2">
+            <div class="flex justify-between text-xs font-semibold text-slate-400 mb-1">
+              <span>Speed</span>
+              <span id="speed-label" class="text-indigo-400 font-mono font-bold">Normal (800ms)</span>
+            </div>
+            <input id="speed-slider" type="range" min="200" max="2500" step="50" value="800" oninput="onSpeedChange(this.value)" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+          </div>
+        </div>
+
+        <!-- Action Buttons: Positioned on the right side with generous spacing -->
+        <div id="actions-container" class="flex items-center justify-end gap-2 flex-wrap sm:flex-nowrap shrink-0">
+          <button id="btn-generate" onclick="handleGenerate()" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition flex items-center justify-center gap-1.5 border border-slate-700 shadow-sm whitespace-nowrap">
+            <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            <span id="btn-generate-label">New Array</span>
+          </button>
+
+          <button id="btn-prev" onclick="handleStepBackward()" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition flex items-center justify-center gap-1 border border-slate-700 shadow-sm whitespace-nowrap" title="Step Back 1 Operation">
+            <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            <span>Prev</span>
+          </button>
+
+          <button id="btn-play" onclick="handlePlayPause()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white text-xs font-bold shadow-lg shadow-indigo-600/30 transition flex items-center justify-center gap-1.5 whitespace-nowrap">
+            <span id="play-icon-wrap" class="flex items-center">
+              <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            </span>
+            <span id="play-text">Start</span>
+          </button>
+
+          <button id="btn-next" onclick="handleStepForward()" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition flex items-center justify-center gap-1 border border-slate-700 shadow-sm whitespace-nowrap" title="Step Forward 1 Operation">
+            <span>Next</span>
+            <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          </button>
+
+          <button id="btn-reset" onclick="handleReset()" class="px-3 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-xs font-semibold transition border border-rose-500/25 flex items-center justify-center gap-1 shadow-sm whitespace-nowrap" title="Reset State">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
+            <span id="btn-reset-label">Reset</span>
+          </button>
+        </div>
+
+      </div>
+    </section>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1">
+      
+      <!-- Main Visualizer Stage (7 Columns) -->
+      <div class="lg:col-span-7 flex flex-col gap-4">
+        <div class="relative bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-2xl flex-1 flex flex-col min-h-[440px]">
+          
+          <!-- Visualizer Header & Legend -->
+          <div class="flex flex-wrap items-center justify-between pb-3.5 mb-3 border-b border-slate-800 text-xs gap-2">
+            <span id="visualizer-heading" class="font-bold text-slate-200 text-sm tracking-wide flex items-center gap-2">
+              <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+              Sorting Array Visualizer
+            </span>
+            <div id="visualizer-legend" class="flex flex-wrap items-center gap-3 text-slate-400 text-[11px]">
+              <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span> Normal</div>
+              <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span> Comparing</div>
+              <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> Swapping/Pivot</div>
+              <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span> Sorted</div>
+            </div>
+          </div>
+
+          <!-- Dynamic Visualization Stage Canvas / DOM Container -->
+          <div id="visualization-stage" class="flex-1 w-full h-full flex items-end justify-center relative min-h-[300px]">
+            <!-- Injected by JavaScript -->
+          </div>
+
+          <!-- Dedicated Step-by-Step Narrative Explanation Panel -->
+          <div class="mt-4 bg-slate-950/90 border border-slate-800/90 rounded-xl p-3.5 flex flex-col gap-1.5 shadow-inner">
+            <div class="flex items-center justify-between text-xs">
+              <div class="flex items-center gap-2 text-indigo-400 font-semibold uppercase tracking-wider text-[11px]">
+                <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Step-by-Step Explanation
+              </div>
+              <span id="step-badge" class="px-2.5 py-0.5 rounded-full bg-slate-900 text-slate-300 font-mono text-[10px] border border-slate-800">Step 0 / 0</span>
+            </div>
+            <div id="step-explanation-text" class="text-xs sm:text-sm font-medium text-slate-200 min-h-[40px] flex items-center leading-relaxed">
+              Ready. Choose an algorithm and click Start, or use Prev / Next to step through at your own pace.
+            </div>
+          </div>
+
+          <!-- Live Stats & Operations Bar -->
+          <div class="mt-3 pt-3 border-t border-slate-800 flex flex-wrap items-center justify-between text-xs text-slate-400 gap-3">
+            <div id="status-message" class="flex items-center gap-2 font-medium">
+              <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              Ready. Choose an algorithm and press Start, Next, or Prev.
+            </div>
+            <div class="flex items-center gap-3 sm:gap-4 font-mono text-[11px]">
+              <span id="stat-comparisons-container">Comparisons: <b id="stat-comparisons" class="text-indigo-400 font-bold">0</b></span>
+              <span><span id="stat-swaps-label">Swaps / Ops:</span> <b id="stat-swaps" class="text-cyan-400 font-bold">0</b></span>
+              <span id="stat-steps-container">Steps: <b id="stat-steps" class="text-amber-400 font-bold">0</b></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Complexity Matrix -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <div class="p-2.5 rounded-xl bg-indigo-950/80 text-indigo-400 border border-indigo-800/40">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            </div>
+            <div>
+              <div class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Complexity Matrix</div>
+              <div id="badge-name" class="font-bold text-white text-base">Bubble Sort</div>
+            </div>
+          </div>
+          <div class="flex flex-wrap items-center gap-2 font-mono text-xs">
+            <div class="bg-slate-800/90 border border-slate-700/60 px-3 py-1.5 rounded-xl">
+              <span class="text-slate-400 block text-[9px] font-sans font-semibold">BEST TIME</span>
+              <span id="comp-best" class="text-emerald-400 font-bold">O(N)</span>
+            </div>
+            <div class="bg-slate-800/90 border border-slate-700/60 px-3 py-1.5 rounded-xl">
+              <span class="text-slate-400 block text-[9px] font-sans font-semibold">AVG TIME</span>
+              <span id="comp-avg" class="text-amber-400 font-bold">O(N²)</span>
+            </div>
+            <div class="bg-slate-800/90 border border-slate-700/60 px-3 py-1.5 rounded-xl">
+              <span class="text-slate-400 block text-[9px] font-sans font-semibold">WORST TIME</span>
+              <span id="comp-worst" class="text-rose-400 font-bold">O(N²)</span>
+            </div>
+            <div class="bg-slate-800/90 border border-slate-700/60 px-3 py-1.5 rounded-xl">
+              <span class="text-slate-400 block text-[9px] font-sans font-semibold">SPACE</span>
+              <span id="comp-space" class="text-indigo-400 font-bold">O(1)</span>
+            </div>
+          </div>
+        </div>
+
+        <div id="complexity-summary" class="hidden bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl">
+          <div class="flex items-center justify-between gap-2 pb-2 mb-2 border-b border-slate-800">
+            <div class="text-[10px] uppercase tracking-wider font-semibold text-slate-400">Live Complexity Summary</div>
+            <span class="text-[10px] font-mono text-indigo-400">N = <span id="complexity-input-size">25</span></span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+            <div class="bg-slate-800/80 border border-slate-700 rounded-xl p-3">
+              <div class="text-slate-400 text-[9px] uppercase tracking-wider mb-1">Estimated Work</div>
+              <div id="complexity-estimate" class="font-mono text-cyan-400 font-bold">~625 comparisons</div>
+            </div>
+            <div class="bg-slate-800/80 border border-slate-700 rounded-xl p-3 sm:col-span-2">
+              <div class="text-slate-400 text-[9px] uppercase tracking-wider mb-1">Formula</div>
+              <div id="complexity-formula" class="text-slate-200 leading-relaxed">Bubble Sort runs in O(N²) time on average and uses O(1) extra space for an input of size N.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Multi-File Code Viewer (5 Columns) -->
+      <div class="lg:col-span-5 flex flex-col gap-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-2xl flex-1 flex flex-col min-w-0">
+          
+          <!-- Code Card Header with Horizontal Tabs & Copy Action -->
+          <div class="flex items-center justify-between gap-2 pb-3 border-b border-slate-800">
+            <div class="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs font-mono no-scrollbar overflow-x-auto">
+              <button onclick="switchFileLang('py')" id="file-tab-py" class="file-tab px-3 py-1 rounded-lg bg-indigo-600 text-white font-semibold transition shrink-0">
+                solution.py
+              </button>
+              <button onclick="switchFileLang('c')" id="file-tab-c" class="file-tab px-3 py-1 rounded-lg text-slate-400 hover:text-slate-200 transition shrink-0">
+                solution.c
+              </button>
+              <button onclick="switchFileLang('java')" id="file-tab-java" class="file-tab px-3 py-1 rounded-lg text-slate-400 hover:text-slate-200 transition shrink-0">
+                Solution.java
+              </button>
+            </div>
+            
+            <button onclick="copyActiveCode()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1.5 rounded-xl border border-slate-700/80 flex items-center gap-1.5 transition shrink-0">
+              <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"/></svg>
+              <span id="copy-label">Copy</span>
+            </button>
+          </div>
+
+          <!-- Code Viewport -->
+          <div class="mt-3 relative flex-1 min-h-[300px] max-h-[460px] bg-slate-950 rounded-xl p-3.5 font-mono text-xs overflow-auto border border-slate-800 text-slate-300 leading-relaxed">
+            <pre><code id="code-display" class="block"></code></pre>
+          </div>
+
+          <!-- Algorithm Explanation -->
+          <div class="mt-4 pt-3 border-t border-slate-800">
+            <h4 class="text-[11px] font-bold text-slate-300 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              Algorithm Overview
+            </h4>
+            <p id="algo-description" class="text-xs text-slate-400 leading-relaxed"></p>
+          </div>
+        </div>
+
+        <!-- Custom Notification Toast -->
+        <div id="toast" class="hidden fixed bottom-6 right-6 z-50 bg-slate-800 border border-slate-700 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 transition-all duration-300">
+          <span id="toast-icon-wrap">
+            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          </span>
+          <span id="toast-text" class="text-xs font-medium">Notification</span>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="./app.js"></script>
+</body>
+</html>
