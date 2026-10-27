@@ -20,8 +20,7 @@ const byId = (id) => document.getElementById(id);
 const categoryNames = {
   sorting: "Sorting",
   searching: "Searching",
-  datastructures: "Stack & Queue",
-  complexity: "Time & Space Complexity"
+  datastructures: "Stack & Queue"
 };
 
 function currentAlgorithm() {
@@ -29,9 +28,6 @@ function currentAlgorithm() {
 }
 
 function selectedMetadata() {
-  if (state.category === "complexity") {
-    return state.catalog.find((item) => item.id === currentAlgorithm()) || state.catalog[0];
-  }
   return state.catalog.find((item) => item.category === state.category && item.id === currentAlgorithm());
 }
 
@@ -412,8 +408,7 @@ async function buildTrace() {
   if (state.pending) return false;
   stopPlayback();
   const version = state.requestVersion;
-  const item = selectedMetadata();
-  const algorithmCategory = state.category === "complexity" ? item.category : state.category;
+  const algorithmCategory = state.category;
   const payload = { category: algorithmCategory, algorithm: currentAlgorithm(), values: state.values };
   if (algorithmCategory === "searching") {
     const targetInput = byId("search-target-input").value.trim();
@@ -604,9 +599,6 @@ function onAlgoChange() {
     setStatus(`${currentAlgorithm() === "stack" ? "Stack" : "Queue"} ready.`);
     return;
   }
-  if (state.category === "complexity") {
-    byId("search-target-control").classList.toggle("hidden", !["linear", "binary"].includes(currentAlgorithm()));
-  }
   renderMetadata();
   handleReset();
 }
@@ -714,9 +706,7 @@ function switchCategory(category) {
     tab.classList.toggle("font-medium", !active);
   });
 
-  const available = category === "complexity"
-    ? state.catalog
-    : state.catalog.filter((item) => item.category === category);
+  const available = state.catalog.filter((item) => item.category === category);
   const select = byId("algo-select");
   select.replaceChildren();
   available.forEach((item) => {
@@ -738,7 +728,7 @@ function switchCategory(category) {
     state.operationCount = 0;
   }
 
-  const searchActive = category === "searching" || (category === "complexity" && ["linear", "binary"].includes(currentAlgorithm()));
+  const searchActive = category === "searching";
   const isStructure = category === "datastructures";
   byId("search-target-control").classList.toggle("hidden", !searchActive);
   byId("custom-data-control").classList.toggle("hidden", isStructure);

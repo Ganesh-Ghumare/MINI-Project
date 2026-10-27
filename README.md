@@ -9,7 +9,7 @@ npm install
 npm start
 ```
 
-Open <http://localhost:3000>. The Sorting view keeps its best, average, and worst time plus space complexity matrix, and shows a live work estimate that updates as the input size changes. The Complexity tab also provides the live summary for other algorithms.
+Open <http://localhost:3000>. The Sorting view keeps its best, average, and worst time plus space complexity matrix, and shows a live work estimate that updates as the input size changes. The input complexity section shows work counts and storage estimates for the selected algorithm.
 
 The development server can be started with `npm run dev`; run the automated checks with `npm test`.
 
