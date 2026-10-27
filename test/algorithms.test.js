@@ -33,6 +33,19 @@ test("binary search rejects unsorted inputs", () => {
   );
 });
 
+test("input analysis work changes with value order and search target at the same size", () => {
+  const sorted = createTrace({ category: "sorting", algorithm: "bubble", values: [1, 2, 3, 4] });
+  const reversed = createTrace({ category: "sorting", algorithm: "bubble", values: [4, 3, 2, 1] });
+  assert.equal(sorted.result.comparisons, 3);
+  assert.equal(sorted.result.operations, 0);
+  assert.equal(reversed.result.comparisons, 6);
+  assert.equal(reversed.result.operations, 6);
+  const first = createTrace({ category: "searching", algorithm: "linear", values: [1, 2, 3, 4], target: 1 });
+  const last = createTrace({ category: "searching", algorithm: "linear", values: [1, 2, 3, 4], target: 4 });
+  assert.equal(first.result.comparisons, 1);
+  assert.equal(last.result.comparisons, 4);
+});
+
 test("stack and queue traces preserve LIFO and FIFO removal order", () => {
   const stack = createTrace({ category: "datastructures", algorithm: "stack", values: [2, 4, 6] });
   const queue = createTrace({ category: "datastructures", algorithm: "queue", values: [2, 4, 6] });

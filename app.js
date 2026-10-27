@@ -12,6 +12,8 @@ const state = {
   playing: false,
   timer: null,
   language: "py",
+  requestVersion: 0,
+  pending: false,
 };
 
 const byId = (id) => document.getElementById(id);
@@ -64,7 +66,7 @@ function estimateComplexityWork(item, size) {
     case "linear":
       return `~${n} checks`;
     case "binary":
-      return `~${Math.ceil(log2n)} checks`;
+      return `~${Math.floor(log2n) + 1} checks`;
     case "stack":
     case "queue":
       return `~1 step per operation`;
@@ -78,6 +80,68 @@ async function requestJson(url, options) {
   const payload = await response.json();
   if (!response.ok) throw new Error(payload.error || "The server request failed.");
   return payload;
+}
+
+function inputSpaceEstimate(algorithm, n) {
+  if (algorithm === "merge") return `${n} input values + up to ${n} merge slots + about ${Math.ceil(Math.log2(Math.max(1, n))) + 1} recursive frames (O(N) extra)`;
+  if (algorithm === "quick") return `${n} input values + up to ${n} recursive frames in the worst case (O(N) extra; O(log N) average)`;
+  if (algorithm === "stack" || algorithm === "queue") return `${n} stored values (O(N)); O(1) auxiliary storage per operation`;
+  return `${n} input values + a fixed number of working variables (O(1) extra)`;
+}
+
+let analysisVersion = 0;
+let analysisTimer;
+function renderInputAnalysis() {
+  const version = ++analysisVersion;
+  clearTimeout(analysisTimer);
+  const item = selectedMetadata();
+  if (!item) return;
+  let values = state.values.slice();
+  const raw = byId("custom-array-input").value.trim();
+  const structure = state.category === "datastructures";
+  const status = byId("input-analysis-status");
+  byId("input-time-work").textContent = "Calculating...";
+  byId("input-space-work").textContent = "Waiting for valid input...";
+  if (!structure && raw) {
+    const tokens = raw.split(",").map((token) => token.trim());
+    if (tokens.length > 50 || tokens.some((token) => !/^-?\d+$/.test(token) || Math.abs(Number(token)) > 9999)) {
+      byId("input-time-work").textContent = "Invalid input";
+      status.textContent = "Enter 1 to 50 comma-separated integers between -9999 and 9999.";
+      return;
+    }
+    values = tokens.map(Number);
+  }
+  const n = values.length;
+  byId("input-space-work").textContent = inputSpaceEstimate(item.id, n);
+  status.textContent = `N = ${n}. ${raw && !structure ? "Preview of the typed input." : "Current input."}`;
+  if (item.category === "datastructures") {
+    byId("input-time-work").textContent = "1 push/pop or enqueue/dequeue operation · O(1)";
+    return;
+  }
+  const payload = { category: item.category, algorithm: item.id, values };
+  if (item.category === "searching") {
+    const target = byId("search-target-input").value.trim();
+    if (!target || !Number.isInteger(Number(target)) || Math.abs(Number(target)) > 9999) {
+      byId("input-time-work").textContent = "Enter a valid integer target";
+      return;
+    }
+    payload.target = Number(target);
+  }
+  analysisTimer = setTimeout(async () => {
+    try {
+      const trace = await requestJson(`${API_ROOT}/visualize`, {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload)
+      });
+      if (version !== analysisVersion) return;
+      const { comparisons, operations } = trace.result;
+      byId("input-time-work").textContent = `${comparisons} ${item.category === "searching" ? "checks" : "comparisons"} + ${operations} swaps / writes`;
+      status.textContent += ` Work counted for this input. Average growth: ${item.average}; worst case: ${item.worst}.`;
+    } catch (error) {
+      if (version !== analysisVersion) return;
+      byId("input-time-work").textContent = "Analysis unavailable";
+      status.textContent = error.message;
+    }
+  }, 200);
 }
 
 function showToast(message, isError = false) {
@@ -183,6 +247,7 @@ function renderMetadata() {
   byId("complexity-summary").classList.toggle("hidden", !showComplexitySummary);
   byId("complexity-formula").textContent = `${item.label} runs in ${item.average} time on average and uses ${item.space} extra space for an input of size N.`;
   setCodeDisplay();
+  renderInputAnalysis();
 }
 
 function renderValues(step) {
@@ -192,8 +257,9 @@ function renderValues(step) {
   const active = new Set(step ? step.activeIndices : []);
   const sorted = new Set(step ? step.sortedIndices : []);
   const pivots = new Set(step ? step.pivotIndices : []);
+  const displayCategory = state.trace?.category || selectedMetadata()?.category || state.category;
 
-  if (state.category === "datastructures") {
+  if (displayCategory === "datastructures") {
     stage.classList.remove("items-end");
     stage.classList.add("items-center");
     const stack = currentAlgorithm() === "stack";
@@ -336,33 +402,46 @@ function renderStep(index) {
   byId("stat-steps").textContent = state.stepIndex;
   if (state.stepIndex === state.trace.steps.length - 1) {
     stopPlayback();
-    setStatus(state.trace.result.foundIndex === -1 && state.category === "searching" ? "Target not found." : "Trace complete.");
+    setStatus(state.trace.result.foundIndex === -1 && state.trace.category === "searching" ? "Target not found." : "Trace complete.");
   } else {
     setStatus(step.explanation, state.trace.steps[state.stepIndex].action === "not-found");
   }
 }
 
 async function buildTrace() {
+  if (state.pending) return false;
   stopPlayback();
-  const payload = { category: state.category, algorithm: currentAlgorithm(), values: state.values };
-  if (state.category === "searching") {
+  const version = state.requestVersion;
+  const item = selectedMetadata();
+  const algorithmCategory = state.category === "complexity" ? item.category : state.category;
+  const payload = { category: algorithmCategory, algorithm: currentAlgorithm(), values: state.values };
+  if (algorithmCategory === "searching") {
     const targetInput = byId("search-target-input").value.trim();
     const target = Number(targetInput);
     if (!targetInput || !Number.isInteger(target)) throw new Error("Enter a whole-number target.");
     payload.target = target;
   }
-  state.trace = await requestJson(`${API_ROOT}/visualize`, {
+  state.pending = true;
+  let trace;
+  try {
+    trace = await requestJson(`${API_ROOT}/visualize`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
   });
+  } finally {
+    if (version === state.requestVersion) state.pending = false;
+  }
+  if (version !== state.requestVersion) return false;
+  state.trace = trace;
   renderMetadata();
   renderStep(0);
+  return true;
 }
 
 function handleStepForward() {
   if (!state.trace) {
-    buildTrace().then(() => renderStep(1)).catch((error) => showToast(error.message, true));
+    buildTrace().then((loaded) => { if (loaded) renderStep(1); }).catch((error) => showToast(error.message, true));
     return;
   }
   renderStep(state.stepIndex + 1);
@@ -370,7 +449,7 @@ function handleStepForward() {
 
 function handleStepBackward() {
   if (!state.trace) {
-    buildTrace().then(() => renderStep(0)).catch((error) => showToast(error.message, true));
+    buildTrace().then((loaded) => { if (loaded) renderStep(0); }).catch((error) => showToast(error.message, true));
     return;
   }
   stopPlayback();
@@ -396,12 +475,12 @@ function handlePlayPause() {
         return;
       }
       renderStep(state.stepIndex + 1);
-      if (state.playing) state.timer = setTimeout(advance, Number(byId("speed-slider").value));
+      if (state.playing) state.timer = setTimeout(advance, 800);
     };
     advance();
   };
   if (!state.trace) {
-    buildTrace().then(start).catch((error) => showToast(error.message, true));
+    buildTrace().then((loaded) => { if (loaded) start(); }).catch((error) => showToast(error.message, true));
   } else if (state.stepIndex >= state.trace.steps.length - 1) {
     renderStep(0);
     start();
@@ -411,11 +490,14 @@ function handlePlayPause() {
 }
 
 function handleReset() {
+  state.requestVersion += 1;
+  state.pending = false;
   stopPlayback();
   if (state.category === "datastructures") {
     const algorithm = currentAlgorithm();
     state.values = [];
     state.structures[algorithm] = [];
+    state.structureOperationCounts[algorithm] = 0;
     state.trace = null;
     state.stepIndex = 0;
     state.operationCount = 0;
@@ -426,6 +508,7 @@ function handleReset() {
     byId("stat-swaps").textContent = "0";
     byId("stat-steps").textContent = "0";
     setStatus(`${algorithm === "stack" ? "Stack" : "Queue"} cleared.`);
+    renderInputAnalysis();
     return;
   }
   if (state.trace) renderStep(0);
@@ -480,10 +563,18 @@ function applyCustomData() {
 
 function pickRandomTarget() {
   if (state.values.length) byId("search-target-input").value = state.values[Math.floor(Math.random() * state.values.length)];
+  onTargetChange();
+}
+
+function onTargetChange() {
+  state.trace = null;
+  handleReset();
+  renderInputAnalysis();
 }
 
 function onSizeChange(value) {
   byId("size-label").textContent = value;
+  byId("custom-array-input").value = "";
   state.values = Array.from({ length: Number(value) }, () => Math.floor(Math.random() * 96) + 5);
   state.arrayValues = state.values.slice();
   state.trace = null;
@@ -491,12 +582,10 @@ function onSizeChange(value) {
   handleReset();
 }
 
-function onSpeedChange(value) {
-  const labels = value < 500 ? "Fast" : value < 1200 ? "Normal" : "Slow";
-  byId("speed-label").textContent = `${labels} (${value}ms)`;
-}
-
 function onAlgoChange() {
+  state.requestVersion += 1;
+  state.pending = false;
+  stopPlayback();
   state.trace = null;
   if (state.category === "datastructures") {
     state.values = state.structures[currentAlgorithm()].slice();
@@ -548,8 +637,8 @@ function updateStructureControls() {
 
 function updateStructureButtons() {
   const stack = currentAlgorithm() === "stack";
-  const full = state.values.length >= 50;
-  const empty = state.values.length === 0;
+  const full = state.pending || state.values.length >= 50;
+  const empty = state.pending || state.values.length === 0;
   byId("btn-structure-add").disabled = full;
   byId("btn-structure-remove").disabled = empty;
   byId("btn-structure-add").title = full ? "The structure is at capacity." : (stack ? "Push this value onto the top of the stack." : "Enqueue this value at the rear of the queue.");
@@ -557,7 +646,7 @@ function updateStructureButtons() {
 }
 
 async function applyStructureOperation(operation) {
-  if (state.category !== "datastructures") return;
+  if (state.category !== "datastructures" || state.pending) return;
   operation = operation || (currentAlgorithm() === "stack" ? "push" : "enqueue");
   if ((byId("btn-structure-add").disabled && (operation === "push" || operation === "enqueue"))
     || (byId("btn-structure-remove").disabled && (operation === "pop" || operation === "dequeue"))) return;
@@ -579,26 +668,39 @@ async function applyStructureOperation(operation) {
   }
 
   stopPlayback();
+  const version = state.requestVersion;
+  state.pending = true;
+  updateStructureButtons();
   try {
-    state.trace = await requestJson(`${API_ROOT}/visualize`, {
+    const trace = await requestJson(`${API_ROOT}/visualize`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
+    if (version !== state.requestVersion) return;
+    state.trace = trace;
     state.values = state.trace.result.values;
     state.structures[currentAlgorithm()] = state.values.slice();
     state.operationCount += 1;
     state.structureOperationCounts[currentAlgorithm()] = state.operationCount;
     renderStep(state.trace.steps.length - 1);
+    renderInputAnalysis();
     if (adding) byId("structure-value-input").value = "";
     if (adding) byId("structure-value-input").focus();
   } catch (error) {
-    showToast(error.message, true);
+    if (version === state.requestVersion) showToast(error.message, true);
+  } finally {
+    if (version === state.requestVersion) {
+      state.pending = false;
+      updateStructureButtons();
+    }
   }
 }
 
 function switchCategory(category) {
   if (!categoryNames[category]) return;
+  state.requestVersion += 1;
+  state.pending = false;
   stopPlayback();
   state.category = category;
   state.trace = null;
@@ -645,7 +747,6 @@ function switchCategory(category) {
   byId("algo-label").textContent = isStructure ? "Data Structure" : "Algorithm";
   if (isStructure) updateStructureControls();
   byId("array-size-control").classList.toggle("hidden", isStructure);
-  byId("speed-control").classList.toggle("hidden", isStructure);
   byId("controls-divider").classList.toggle("hidden", isStructure);
   byId("visualizer-legend").classList.toggle("hidden", isStructure);
   byId("stat-comparisons-container").classList.toggle("hidden", isStructure);
@@ -659,7 +760,8 @@ function switchCategory(category) {
   }
 
   renderMetadata();
-  handleReset();
+  if (isStructure) onAlgoChange();
+  else handleReset();
 }
 
 function switchFileLang(language) {
@@ -690,6 +792,7 @@ function toggleAudio() {
 
 async function initialize() {
   try {
+    byId("search-target-input").addEventListener("input", onTargetChange);
     byId("custom-array-input").addEventListener("input", renderMetadata);
     const response = await requestJson(`${API_ROOT}/algorithms`);
     state.catalog = response.algorithms;
@@ -710,7 +813,6 @@ window.onAlgoChange = onAlgoChange;
 window.applyCustomData = applyCustomData;
 window.pickRandomTarget = pickRandomTarget;
 window.onSizeChange = onSizeChange;
-window.onSpeedChange = onSpeedChange;
 window.handleGenerate = handleGenerate;
 window.handleStepBackward = handleStepBackward;
 window.handlePlayPause = handlePlayPause;

@@ -122,10 +122,10 @@
       <!-- Divider separating inputs from execution controls -->
       <div id="controls-divider" class="h-px bg-slate-800/80 w-full"></div>
 
-      <!-- Bottom Row: Sliders (Left) and Playback Action Buttons (Right) -->
+      <!-- Bottom Row: Array Size and Playback Action Buttons -->
       <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
         
-        <!-- Sliders Container: Size & Speed Cards -->
+        <!-- Array Size Control -->
         <div id="sliders-container" class="flex flex-wrap sm:flex-nowrap items-center gap-3 flex-1 max-w-xl">
           <div id="array-size-control" class="flex-1 min-w-[150px] bg-slate-950/70 border border-slate-800/80 rounded-xl px-3.5 py-2">
             <div class="flex justify-between text-xs font-semibold text-slate-400 mb-1">
@@ -135,13 +135,6 @@
             <input id="size-slider" type="range" min="4" max="50" value="25" oninput="onSizeChange(this.value)" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500">
           </div>
 
-          <div id="speed-control" class="flex-1 min-w-[150px] bg-slate-950/70 border border-slate-800/80 rounded-xl px-3.5 py-2">
-            <div class="flex justify-between text-xs font-semibold text-slate-400 mb-1">
-              <span>Speed</span>
-              <span id="speed-label" class="text-indigo-400 font-mono font-bold">Normal (800ms)</span>
-            </div>
-            <input id="speed-slider" type="range" min="200" max="2500" step="50" value="800" oninput="onSpeedChange(this.value)" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500">
-          </div>
         </div>
 
         <!-- Action Buttons: Positioned on the right side with generous spacing -->
@@ -260,6 +253,22 @@
             </div>
           </div>
         </div>
+
+        <section class="bg-slate-900 border border-indigo-800/50 rounded-2xl p-4 shadow-xl" aria-labelledby="input-analysis-heading">
+          <h3 id="input-analysis-heading" class="text-sm font-bold text-white mb-2">Complexity for Your Input</h3>
+          <p class="text-xs text-slate-400 mb-3">Big-O describes growth. The work and storage below change with your input; memory figures are algorithm estimates and exclude visualization snapshots.</p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs" aria-live="polite">
+            <div class="bg-slate-800/80 border border-slate-700 rounded-xl p-3">
+              <div class="text-slate-400 mb-1">Time · work for this input</div>
+              <p id="input-time-work" class="font-mono text-cyan-400">Waiting for input...</p>
+            </div>
+            <div class="bg-slate-800/80 border border-slate-700 rounded-xl p-3">
+              <div class="text-slate-400 mb-1">Space · storage for this input</div>
+              <p id="input-space-work" class="font-mono text-indigo-300">Waiting for input...</p>
+            </div>
+          </div>
+          <p id="input-analysis-status" class="text-xs text-slate-400 mt-3"></p>
+        </section>
 
         <div id="complexity-summary" class="hidden bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl">
           <div class="flex items-center justify-between gap-2 pb-2 mb-2 border-b border-slate-800">
