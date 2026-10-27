@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: algocraft-visualizer
+    runtime: node
+    plan: free
+    repo: https://github.com/Ganesh-Ghumare/MINI-Project
+    branch: main
+    buildCommand: npm ci --omit=dev
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: "22"

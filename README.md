@@ -13,6 +13,17 @@ Open <http://localhost:3000>. The Sorting view keeps its best, average, and wors
 
 The development server can be started with `npm run dev`; run the automated checks with `npm test`.
 
+## Deploy to Render
+
+This repository includes `render.yaml` to deploy the frontend and Express API together as one web service.
+
+1. Sign in to Render and create a **New > Blueprint**.
+2. Connect `Ganesh-Ghumare/MINI-Project` and select the `main` branch.
+3. Review the `algocraft-visualizer` service using the Free plan, then deploy.
+4. Open the service URL from the Render dashboard. Verify `/api/health` returns `{"status":"ok"}`.
+
+The Blueprint installs dependencies with `npm ci --omit=dev`, starts with `npm start`, and uses `/api/health` for health checks. No database or application secrets are required. Keep Render's provided `PORT`; the server already reads it. Free services can take time to wake after inactivity.
+
 ## API
 
 - `GET /api/health` returns `{ "status": "ok" }`.
